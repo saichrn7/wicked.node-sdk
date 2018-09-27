@@ -518,10 +518,19 @@ export function _getInternalKongAdminUrl() {
 
 /** @hidden */
 export function _getInternalKongProxyUrl() {
-    debug('getInternalKongAdminUrl()');
-    checkInitialized('getInternalKongAdminUrl');
+    debug('getInternalKongProxyUrl()');
+    checkInitialized('getInternalKongProxyUrl');
 
-    // Deduce from Kong Admin URL
+    // Check if it's there
+    try {
+        const proxyUrl = _getInternalUrl('kongProxyUrl', 'kong', 8000);
+        if (proxyUrl && proxyUrl !== '' && proxyUrl !== '/')
+            return proxyUrl;
+    } catch (ex) {
+        debug(ex);
+    }
+    debug(`globals.json: network.kongProxyUrl is not defined, falling back to admin URL.`)
+    // Fallback: Deduce from Kong Admin URL
     const adminUrl = _getInternalKongAdminUrl();
     return adminUrl.replace(/8001/, '8000');
 }
@@ -593,6 +602,16 @@ export function _getApiKeyHeader(): string {
     if (glob.api && glob.api.headerName)
         return glob.api.headerName;
     return 'X-ApiKey';
+}
+
+/** @hidden */
+export function _getPasswordStrategy(): string {
+    debug('getPasswordStrategy()');
+    checkInitialized('getPasswordStrategy()');
+    const glob = wickedStorage.globals as WickedGlobals;
+    if (glob.passwordStrategy)
+        return glob.passwordStrategy;
+    return 'PW_6_24';
 }
 
 // ======= UTILITY FUNCTIONS ======
